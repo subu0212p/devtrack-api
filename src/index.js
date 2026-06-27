@@ -1,10 +1,12 @@
 const express = require('express')
 const dotenv = require('dotenv')
 const connectDB = require('./config/database')
+const { startCronJobs } = require('./config/cron')
 
 dotenv.config()
 
 connectDB()
+startCronJobs()
 
 const app = express()
 
@@ -14,6 +16,10 @@ app.use(express.json())
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/projects', require('./routes/projects'))
 app.use('/api/projects', require('./routes/tasks'))
+app.use('/api/tasks', require('./routes/tasks'))
+app.use('/api/notifications', require('./routes/notifications'))
+app.use('/api/users', require('./routes/users'))
+app.use('/api/ai', require('./routes/ai'))
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'DevTrack API is running' })
