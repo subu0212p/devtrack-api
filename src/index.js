@@ -1,5 +1,6 @@
 const express = require('express')
 const dotenv = require('dotenv')
+const cors = require('cors')
 const connectDB = require('./config/database')
 const { startCronJobs } = require('./config/cron')
 
@@ -9,6 +10,11 @@ connectDB()
 startCronJobs()
 
 const app = express()
+
+app.use(cors({
+  origin: 'http://localhost:3001',
+  credentials: true
+}))
 
 app.use(express.json())
 
