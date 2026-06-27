@@ -1,0 +1,11 @@
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
