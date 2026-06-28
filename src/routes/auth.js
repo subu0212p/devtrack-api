@@ -184,17 +184,72 @@ router.post('/google', async (req, res) => {
 })
 
 // POST /api/auth/github
+// POST /api/auth/github
 router.post('/github', async (req, res) => {
   try {
-    const { name, email, avatar, githubId } = req.body
+    const { code, name, email, avatar, githubId } = req.body
 
+    // if code is provided, exchange it for user info
+    if (code) {
+      const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code
+        })
+      })
+      const tokenData = await tokenRes.json()
+
+      if (tokenData.error) {
+        return res.status(400).json({ message: 'GitHub OAuth failed' })
+      }
+
+      const userRes = await fetch('https://api.github.com/user', {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` }
+      })
+      const githubUser = await userRes.json()
+
+      const emailRes = await fetch('https://api.github.com/user/emails', {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` }
+      })
+      const emails = await emailRes.json()
+      const primaryEmail = emails.find(e => e.primary)?.email || githubUser.email
+
+      let user = await User.findOne({ email: primaryEmail })
+
+      if (!user) {
+        user = await User.create({
+          name: githubUser.name || githubUser.login,
+          email: primaryEmail,
+          avatar: githubUser.avatar_url,
+          authProvider: 'github',
+          isVerified: true
+        })
+      } else {
+        user.avatar = githubUser.avatar_url
+        user.isVerified = true
+        await user.save()
+      }
+
+      return res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        token: generateToken(user._id)
+      })
+    }
+
+    // fallback: direct user info provided
     let user = await User.findOne({ email })
-
     if (!user) {
       user = await User.create({
-        name,
-        email,
-        avatar,
+        name, email, avatar,
         authProvider: 'github',
         isVerified: true
       })
