@@ -39,6 +39,7 @@ router.post('/register', async (req, res) => {
       message: 'Registration successful. Please check your email to verify your account.'
     })
   } catch (error) {
+    console.error('REGISTER ERROR:', error.message)
     res.status(500).json({ message: error.message })
   }
 })
@@ -149,7 +150,7 @@ router.post('/reset-password', async (req, res) => {
   }
 })
 
-// POST /api/auth/google — Google OAuth
+// POST /api/auth/google
 router.post('/google', async (req, res) => {
   try {
     const { name, email, avatar, googleId } = req.body
@@ -182,7 +183,7 @@ router.post('/google', async (req, res) => {
   }
 })
 
-// POST /api/auth/github — GitHub OAuth
+// POST /api/auth/github
 router.post('/github', async (req, res) => {
   try {
     const { name, email, avatar, githubId } = req.body

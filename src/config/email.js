@@ -1,14 +1,17 @@
 const nodemailer = require('nodemailer')
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-})
+const getTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  })
+}
 
 const sendVerificationEmail = async (email, name, token) => {
+  const transporter = getTransporter()
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`
 
   await transporter.sendMail({
@@ -30,6 +33,7 @@ const sendVerificationEmail = async (email, name, token) => {
 }
 
 const sendPasswordResetEmail = async (email, name, token) => {
+  const transporter = getTransporter()
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`
 
   await transporter.sendMail({
@@ -51,6 +55,7 @@ const sendPasswordResetEmail = async (email, name, token) => {
 }
 
 const sendInviteEmail = async (email, inviterName, projectName, token) => {
+  const transporter = getTransporter()
   const inviteUrl = `${process.env.FRONTEND_URL}/invite?token=${token}`
 
   await transporter.sendMail({
@@ -71,6 +76,7 @@ const sendInviteEmail = async (email, inviterName, projectName, token) => {
 }
 
 const sendReminderEmail = async (email, name, tasks) => {
+  const transporter = getTransporter()
   const taskList = tasks.map(t =>
     `<li><b>${t.title}</b> — due ${new Date(t.dueDate).toLocaleDateString()}</li>`
   ).join('')

@@ -135,16 +135,29 @@ router.post('/accept-invite', protect, async (req, res) => {
     })
 
     if (!project) {
-      return res.status(404).json({ message: 'Invalid or expired invite' })
-    }
+  return res.status(404).json({ message: 'Invalid or expired invite' })
+}
 
-    const invite = project.invites.find(i => i.token === token)
-    invite.status = 'accepted'
+// prevent owner from joining as member
+if (project.owner.toString() === req.user._id.toString()) {
+  return res.status(400).json({ message: 'You are already the owner of this project' })
+}
 
-    project.members.push({
-      user: req.user._id,
-      role: 'member'
-    })
+// prevent duplicate member
+const alreadyMember = project.members.some(
+  m => m.user.toString() === req.user._id.toString()
+)
+if (alreadyMember) {
+  return res.status(400).json({ message: 'You are already a member of this project' })
+}
+
+const invite = project.invites.find(i => i.token === token)
+invite.status = 'accepted'
+
+project.members.push({
+  user: req.user._id,
+  role: 'member'
+})
 
     await project.save()
 
